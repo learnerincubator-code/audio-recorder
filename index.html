@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
+        .recorder-container { padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #fafafa; }
+        button { padding: 10px 15px; margin: 5px; font-size: 14px; cursor: pointer; border-radius: 4px; border: 1px solid #000; }
+        #startBtn { background-color: #28a745; color: white; }
+        #startBtn:disabled { background-color: #ccc; cursor: not-allowed; }
+        #stopBtn { background-color: #dc3545; color: white; }
+        #stopBtn:disabled { background-color: #ccc; cursor: not-allowed; }
+        audio { display: none; margin: 15px auto 0 auto; width: 100%; max-width: 300px; }
+        #downloadLink { display: none; margin-top: 10px; color: #007bff; text-decoration: underline; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="recorder-container">
+  <h3>Record Your Response</h3>
+  <button id="startBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop Recording</button>
+  <audio id="audioPlayback" controls></audio>
+  <br>
+  <a id="downloadLink">Download Recording</a>
+</div>
+
+<script>
+  let mediaRecorder;
+  let audioChunks = [];
+
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const audioPlayback = document.getElementById('audioPlayback');
+  const downloadLink = document.getElementById('downloadLink');
+
+  startBtn.onclick = async () => {
+    try {
+      // Direct request to browser hardware
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        audioPlayback.src = audioUrl;
+        audioPlayback.style.display = 'block';
+        
+        downloadLink.href = audioUrl;
+        downloadLink.download = 'learner-recording.webm';
+        downloadLink.style.display = 'inline-block';
+        downloadLink.textContent = 'Download Recording';
+
+        // Kill mic streams cleanly to turn off recording light
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    } catch (err) {
+      alert('Microphone error: ' + err.message + '\nEnsure you are using HTTPS and have granted permissions.');
+      console.error(err);
+    }
+  };
+
+  stopBtn.onclick = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+  };
+</script>
+
+</body>
+</html>
