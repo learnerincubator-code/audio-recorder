@@ -36,14 +36,12 @@
             margin-top: 0;
             margin-bottom: 8px;
             font-size: 16px;
-            letter-spacing: -0.2px;
         }
 
         .subtitle {
             font-size: 13px;
             color: #64748b;
             margin-bottom: 20px;
-            font-weight: 400;
         }
         
         .button-group {
@@ -59,12 +57,9 @@
             padding: 10px 22px; 
             font-size: 13px; 
             cursor: pointer; 
-            border-radius: 6px; /* Sleeker, sharp corporate edge */
+            border-radius: 6px; 
             border: 1px solid #002060;
             transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
         }
         
         #startBtn { 
@@ -72,18 +67,9 @@
             color: white; 
         }
         
-        #startBtn:hover:not(:disabled) { 
-            background-color: #00133a; 
-            border-color: #00133a;
-        }
-        
         #stopBtn { 
             background-color: #ffffff; 
             color: #002060;
-        }
-        
-        #stopBtn:hover:not(:disabled) { 
-            background-color: #f1f5f9;
         }
 
         button:disabled { 
@@ -93,21 +79,13 @@
             cursor: not-allowed; 
         }
 
-        /* Subtle pulsating dot for active recording */
         .recording-dot {
             width: 8px;
             height: 8px;
             background-color: #ef4444;
             border-radius: 50%;
             display: none;
-            animation: pulse 1.5s infinite;
-            margin: 12px auto 0 auto;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.5; }
+            margin: 12px auto;
         }
         
         audio { 
@@ -129,12 +107,7 @@
             padding-bottom: 2px;
         }
 
-        #downloadLink:hover {
-            color: #00133a;
-            border-bottom-style: solid;
-        }
-
-        /* Sleek Troubleshooting Accordion Layout */
+        /* Simplified Troubleshooting Area */
         .troubleshoot-wrapper {
             margin-top: 24px;
             border-top: 1px solid #f1f5f9;
@@ -142,39 +115,17 @@
             text-align: left;
         }
 
-        .troubleshoot-toggle {
+        .troubleshoot-header {
             font-size: 12px;
-            color: #64748b;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-weight: 500;
-            user-select: none;
-        }
-
-        .troubleshoot-toggle:hover {
             color: #002060;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
 
-        .troubleshoot-content {
-            display: none;
+        .troubleshoot-text {
             font-size: 11px;
             color: #64748b;
             line-height: 1.6;
-            margin-top: 10px;
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 6px;
-        }
-
-        .troubleshoot-content ul {
-            margin: 0;
-            padding-left: 16px;
-        }
-
-        .troubleshoot-content li {
-            margin-bottom: 6px;
         }
     </style>
 </head>
@@ -195,93 +146,65 @@
   <br>
   <a id="downloadLink">Download Audio Response ↑</a>
 
-  <!-- Integrated Sleek Troubleshooting Segment -->
+  <!-- Simplified Static Troubleshooting Box -->
   <div class="troubleshoot-wrapper">
-    <div class="troubleshoot-toggle" id="toggleHelp">
-      <span>✕ Having microphone issues?</span>
-      <span id="arrow">▼</span>
-    </div>
-    <div class="troubleshoot-content" id="helpContent">
-      <ul>
-        <li><strong>Check Permissions:</strong> Ensure you selected "Allow" when your web browser prompted you for microphone hardware access.</li>
-        <li><strong>Browser Settings:</strong> If it blocked access automatically, click the small lock icon (🔒) or settings icon right next to your browser’s URL bar at the top to re-enable permission.</li>
-        <li><strong>Security Wall Restrictions:</strong> If you are testing this inside a corporate platform layout or an internal authoring preview screen, microphone features may stay disabled until you view the course via a secure, published live environment link.</li>
-      </ul>
+    <div class="troubleshoot-header">✕ Microphone Troubleshooting Tips:</div>
+    <div class="troubleshoot-text">
+        1. Click the <strong>Lock icon (🔒)</strong> right next to your browser’s web link bar at the top and ensure the Microphone option is switched to <strong>Allow</strong>.<br>
+        2. Ensure your Mac system settings permit microphone access under <strong>System Settings > Privacy & Security</strong>.<br>
+        3. Note: Microphone features stay disabled inside the internal Rise edit layout screen. Use the <strong>Preview</strong> mode to test functions!
     </div>
   </div>
 </div>
 
 <script>
   let mediaRecorder;
-  let audioChunks =;
+  let audioChunks = [];
 
   const startBtn = document.getElementById('startBtn');
   const stopBtn = document.getElementById('stopBtn');
   const audioPlayback = document.getElementById('audioPlayback');
   const downloadLink = document.getElementById('downloadLink');
   const recordingDot = document.getElementById('recordingDot');
-  
-  // Interactive Toggle Script for the Troubleshooting Accordion
-  const toggleHelp = document.getElementById('toggleHelp');
-  const helpContent = document.getElementById('helpContent');
-  const arrow = document.getElementById('arrow');
 
-  toggleHelp.onclick = () => {
-    if (helpContent.style.display === 'block') {
-      helpContent.style.display = 'none';
-      arrow.textContent = '▼';
-    } else {
-      helpContent.style.display = 'block';
-      arrow.textContent = '▲';
-    }
-  };
+  startBtn.onclick = function() {
+    // Highly compatible basic audio prompt
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function(stream) {
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
 
-  startBtn.onclick = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          channelCount: 2,
-          sampleRate: 48000,
-          sampleSize: 24
-        } 
+        mediaRecorder.ondataavailable = function(event) {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = function() {
+          var audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          var audioUrl = URL.createObjectURL(audioBlob);
+          
+          audioPlayback.src = audioUrl;
+          audioPlayback.style.display = 'block';
+          
+          downloadLink.href = audioUrl;
+          downloadLink.download = 'learner-recording.webm';
+          downloadLink.style.display = 'inline-block';
+
+          recordingDot.style.display = 'none';
+          stream.getTracks().forEach(function(track) { track.stop(); });
+        };
+
+        mediaRecorder.start();
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        recordingDot.style.display = 'block';
+      })
+      .catch(function(err) {
+        alert('Microphone Access Notice: Please make sure you have allowed browser microphone access in your settings panel.');
+        console.error(err);
       });
-      
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks =;
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) audioChunks.push(event.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        audioPlayback.src = audioUrl;
-        audioPlayback.style.display = 'block';
-        
-        downloadLink.href = audioUrl;
-        downloadLink.download = 'learner-recording.webm';
-        downloadLink.style.display = 'inline-block';
-
-        recordingDot.style.display = 'none';
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-      recordingDot.style.display = 'block';
-    } catch (err) {
-      alert('Microphone access error: ' + err.message);
-      console.error(err);
-    }
   };
 
-  stopBtn.onclick = () => {
+  stopBtn.onclick = function() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
       startBtn.disabled = false;
@@ -292,3 +215,4 @@
 
 </body>
 </html>
+
