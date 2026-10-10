@@ -4,44 +4,253 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audio Recorder</title>
+    <!-- Import Montserrat Font -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-        .recorder-container { padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #fafafa; }
-        button { padding: 10px 15px; margin: 5px; font-size: 14px; cursor: pointer; border-radius: 4px; border: 1px solid #000; }
-        #startBtn { background-color: #28a745; color: white; }
-        #startBtn:disabled { background-color: #ccc; cursor: not-allowed; }
-        #stopBtn { background-color: #dc3545; color: white; }
-        #stopBtn:disabled { background-color: #ccc; cursor: not-allowed; }
-        audio { display: none; margin: 15px auto 0 auto; width: 100%; max-width: 300px; }
-        #downloadLink { display: none; margin-top: 10px; color: #007bff; text-decoration: underline; cursor: pointer; }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            margin: 0; 
+            padding: 12px; 
+            text-align: center; 
+            background-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .recorder-container { 
+            padding: 24px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 32, 96, 0.04);
+            max-width: 440px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        
+        h3 {
+            color: #002060; /* Deep Navy */
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 16px;
+            letter-spacing: -0.2px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        button { 
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            padding: 10px 22px; 
+            font-size: 13px; 
+            cursor: pointer; 
+            border-radius: 6px; /* Sleeker, sharp corporate edge */
+            border: 1px solid #002060;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        #startBtn { 
+            background-color: #002060; 
+            color: white; 
+        }
+        
+        #startBtn:hover:not(:disabled) { 
+            background-color: #00133a; 
+            border-color: #00133a;
+        }
+        
+        #stopBtn { 
+            background-color: #ffffff; 
+            color: #002060;
+        }
+        
+        #stopBtn:hover:not(:disabled) { 
+            background-color: #f1f5f9;
+        }
+
+        button:disabled { 
+            background-color: #f8fafc; 
+            border-color: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed; 
+        }
+
+        /* Subtle pulsating dot for active recording */
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            display: none;
+            animation: pulse 1.5s infinite;
+            margin: 12px auto 0 auto;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+        
+        audio { 
+            display: none; 
+            margin: 16px auto 0 auto; 
+            width: 100%; 
+            height: 40px;
+        }
+        
+        #downloadLink { 
+            display: none; 
+            margin-top: 14px; 
+            color: #002060; 
+            font-weight: 600;
+            text-decoration: none; 
+            cursor: pointer; 
+            font-size: 13px;
+            border-bottom: 1px dashed #002060;
+            padding-bottom: 2px;
+        }
+
+        #downloadLink:hover {
+            color: #00133a;
+            border-bottom-style: solid;
+        }
+
+        /* Sleek Troubleshooting Accordion Layout */
+        .troubleshoot-wrapper {
+            margin-top: 24px;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 12px;
+            text-align: left;
+        }
+
+        .troubleshoot-toggle {
+            font-size: 12px;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+            user-select: none;
+        }
+
+        .troubleshoot-toggle:hover {
+            color: #002060;
+        }
+
+        .troubleshoot-content {
+            display: none;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-top: 10px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .troubleshoot-content ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .troubleshoot-content li {
+            margin-bottom: 6px;
+        }
     </style>
 </head>
 <body>
 
 <div class="recorder-container">
-  <h3>Record Your Response</h3>
-  <button id="startBtn">Start Recording</button>
-  <button id="stopBtn" disabled>Stop Recording</button>
+  <h3>Audio Reflection</h3>
+  <div class="subtitle">Record your voice response directly inside this module block.</div>
+  
+  <div class="button-group">
+    <button id="startBtn">⬤ Start Recording</button>
+    <button id="stopBtn" disabled>■ Stop Recording</button>
+  </div>
+
+  <div id="recordingDot" class="recording-dot"></div>
+
   <audio id="audioPlayback" controls></audio>
   <br>
-  <a id="downloadLink">Download Recording</a>
+  <a id="downloadLink">Download Audio Response ↑</a>
+
+  <!-- Integrated Sleek Troubleshooting Segment -->
+  <div class="troubleshoot-wrapper">
+    <div class="troubleshoot-toggle" id="toggleHelp">
+      <span>✕ Having microphone issues?</span>
+      <span id="arrow">▼</span>
+    </div>
+    <div class="troubleshoot-content" id="helpContent">
+      <ul>
+        <li><strong>Check Permissions:</strong> Ensure you selected "Allow" when your web browser prompted you for microphone hardware access.</li>
+        <li><strong>Browser Settings:</strong> If it blocked access automatically, click the small lock icon (🔒) or settings icon right next to your browser’s URL bar at the top to re-enable permission.</li>
+        <li><strong>Security Wall Restrictions:</strong> If you are testing this inside a corporate platform layout or an internal authoring preview screen, microphone features may stay disabled until you view the course via a secure, published live environment link.</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <script>
   let mediaRecorder;
-  let audioChunks = [];
+  let audioChunks =;
 
   const startBtn = document.getElementById('startBtn');
   const stopBtn = document.getElementById('stopBtn');
   const audioPlayback = document.getElementById('audioPlayback');
   const downloadLink = document.getElementById('downloadLink');
+  const recordingDot = document.getElementById('recordingDot');
+  
+  // Interactive Toggle Script for the Troubleshooting Accordion
+  const toggleHelp = document.getElementById('toggleHelp');
+  const helpContent = document.getElementById('helpContent');
+  const arrow = document.getElementById('arrow');
+
+  toggleHelp.onclick = () => {
+    if (helpContent.style.display === 'block') {
+      helpContent.style.display = 'none';
+      arrow.textContent = '▼';
+    } else {
+      helpContent.style.display = 'block';
+      arrow.textContent = '▲';
+    }
+  };
 
   startBtn.onclick = async () => {
     try {
-      // Direct request to browser hardware
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2,
+          sampleRate: 48000,
+          sampleSize: 24
+        } 
+      });
+      
       mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
+      audioChunks =;
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) audioChunks.push(event.data);
@@ -57,17 +266,17 @@
         downloadLink.href = audioUrl;
         downloadLink.download = 'learner-recording.webm';
         downloadLink.style.display = 'inline-block';
-        downloadLink.textContent = 'Download Recording';
 
-        // Kill mic streams cleanly to turn off recording light
+        recordingDot.style.display = 'none';
         stream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorder.start();
       startBtn.disabled = true;
       stopBtn.disabled = false;
+      recordingDot.style.display = 'block';
     } catch (err) {
-      alert('Microphone error: ' + err.message + '\nEnsure you are using HTTPS and have granted permissions.');
+      alert('Microphone access error: ' + err.message);
       console.error(err);
     }
   };
